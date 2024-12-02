@@ -299,10 +299,10 @@ pub fn main() !void {
                 builder.enable_darling = true;
             } else if (mem.eql(u8, arg, "-fno-darling")) {
                 builder.enable_darling = false;
-            } else if (mem.eql(u8, arg, "-fallow-so-scripts")) {
-                graph.allow_so_scripts = true;
-            } else if (mem.eql(u8, arg, "-fno-allow-so-scripts")) {
-                graph.allow_so_scripts = false;
+                //} else if (mem.eql(u8, arg, "-fallow-so-scripts")) {
+                //    graph.allow_so_scripts = true;
+                //} else if (mem.eql(u8, arg, "-fno-allow-so-scripts")) {
+                //    graph.allow_so_scripts = false;
             } else if (mem.eql(u8, arg, "-freference-trace")) {
                 builder.reference_trace = 256;
             } else if (mem.startsWith(u8, arg, "-freference-trace=")) {
@@ -466,7 +466,7 @@ pub fn main() !void {
 
         if (!watch) return cleanExit();
 
-        if (!Watch.have_impl) fatal("--watch not yet implemented for {s}", .{@tagName(builtin.os.tag)});
+        //if (!Watch.have_impl) fatal("--watch not yet implemented for {s}", .{@tagName(builtin.os.tag)});
 
         try w.update(gpa, run.step_stack.keys());
 
