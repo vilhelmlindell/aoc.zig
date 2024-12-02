@@ -6,8 +6,9 @@ allocator: mem.Allocator,
 
 fn parseLists(this: *const @This()) ![2][]i64 {
     var lines = std.mem.splitScalar(u8, this.input, '\n');
-    var leftList = try this.allocator.alloc(i64, lines.buffer.len);
-    var rightList = try this.allocator.alloc(i64, lines.buffer.len);
+    const lineCount = std.mem.count(u8, this.input, "\n");
+    var leftList = try this.allocator.alloc(i64, lineCount);
+    var rightList = try this.allocator.alloc(i64, lineCount);
 
     var i: u64 = 0;
     while (lines.next()) |line| {
