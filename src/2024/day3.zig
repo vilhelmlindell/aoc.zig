@@ -5,6 +5,15 @@ input: []const u8,
 allocator: mem.Allocator,
 
 const Error = error{ParseFail};
+
+//pub fn ParseResult(comptime T: type) type {
+//    return struct { result: ParseError!T, index: usize };
+//}
+
+fn debug(slice: []const u8, i: *usize) void {
+    std.debug.print("i: {d}, char: {c}\n", .{ i.*, slice[i.*] });
+}
+
 fn parseNumber(slice: []const u8, i: *usize) !i64 {
     const start = i.*;
     errdefer i.* = start;
@@ -20,35 +29,28 @@ fn parseNumber(slice: []const u8, i: *usize) !i64 {
     }
     return result;
 }
-fn parseMem(slice: []const u8, i: *usize) !i64 {
+fn parseBytes(slice: []const u8, i: *usize, expected: []const u8) !void {
     const start = i.*;
     errdefer i.* = start;
-    if (i.* + 4 >= slice.len) return error.ParseFail;
-    const sub_slice = slice[(i.*)..(i.* + 4)];
-    //std.debug.print("Sub-slice: {}\n", .{sub_slice});
-    for (sub_slice) |char| {
-        std.debug.print("{c}", .{char});
-    }
-    std.debug.print("\n", .{});
-    if (!std.mem.eql(u8, sub_slice, "mul(")) return error.ParseFail;
-    i.* += 4;
-    std.debug.print("passed1\n", .{});
+
+    if (i.* + expected.len > slice.len) return error.ParseFail;
+    if (!std.mem.eql(u8, slice[(i.*)..(i.* + expected.len)], expected)) return error.ParseFail;
+
+    i.* += expected.len;
+}
+fn parseMul(slice: []const u8, i: *usize) !i64 {
+    const start = i.*;
+    errdefer i.* = start;
+
+    try parseBytes(slice, i, "mul(");
 
     const left = try parseNumber(slice, i);
-    std.debug.print("passed2\n", .{});
 
-    if (i.* + 1 >= slice.len) return error.ParseFail;
-    if (slice[i.*] != ',') return error.ParseFail;
-    i.* += 1;
+    try parseBytes(slice, i, ",");
 
     const right = try parseNumber(slice, i);
-    std.debug.print("passed3\n", .{});
 
-    if (i.* + 1 >= slice.len) return error.ParseFail;
-    if (slice[i.*] != ')') return error.ParseFail;
-    i.* += 1;
-
-    std.debug.print("left: {d}, right: {d}\n", .{ left, right });
+    try parseBytes(slice, i, ")");
 
     return left * right;
 }
@@ -60,8 +62,7 @@ pub fn part1(this: *const @This()) !?i64 {
     while (lines.next()) |line| {
         var i: usize = 0;
         while (i < line.len) {
-            std.debug.print("i: {d}, c: {c}\n", .{ i, line[i] });
-            sum += parseMem(line, &i) catch {
+            sum += parseMul(line, &i) catch {
                 i += 1;
                 continue;
             };
@@ -72,8 +73,26 @@ pub fn part1(this: *const @This()) !?i64 {
 }
 
 pub fn part2(this: *const @This()) !?i64 {
-    _ = this;
-    return null;
+    var lines = std.mem.splitScalar(u8, this.input, '\n');
+
+    var sum: i64 = 0;
+    while (lines.next()) |line| {
+        var i: usize = 0;
+        var enabled = true;
+        while (i < line.len) {
+            if (parseBytes(line, &i, "do()")) |_| {
+                enabled = true;
+            } else if (parseBytes(line, &i, "don't()")) |_| {
+                enabled = false;
+            } else if (parseMul(line, &i)) |product| {
+                sum += product;
+            } else {
+                i += 1;
+            }
+        }
+    }
+
+    return sum;
 }
 
 test "it should do nothing" {
