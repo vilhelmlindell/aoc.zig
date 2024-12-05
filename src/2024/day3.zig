@@ -76,17 +76,21 @@ pub fn part2(this: *const @This()) !?i64 {
     var lines = std.mem.splitScalar(u8, this.input, '\n');
 
     var sum: i64 = 0;
+    var enabled = true;
     while (lines.next()) |line| {
         var i: usize = 0;
-        var enabled = true;
         while (i < line.len) {
-            if (parseBytes(line, &i, "do()")) |_| {
+            if (parseBytes(line, &i, "do()")) {
                 enabled = true;
-            } else if (parseBytes(line, &i, "don't()")) |_| {
+            } else |_| {}
+            if (parseBytes(line, &i, "don't()")) {
                 enabled = false;
-            } else if (parseMul(line, &i)) |product| {
-                sum += product;
-            } else {
+            } else |_| {}
+            if (parseMul(line, &i)) |product| {
+                if (enabled) {
+                    sum += product;
+                }
+            } else |_| {
                 i += 1;
             }
         }
